@@ -1,0 +1,110 @@
+# @file: Makefile
+
+APP_NAME := lab2-rtos
+
+# board type (used for hardware, cpu name etc..)
+BOARD_TYPE=DE2_115
+
+ifeq ($(BOARD_TYPE), DE0_NANO)
+	CPU_NAME=cpu 
+	TIMER_NAME=timer
+	CORE_FILE=$(PWD)/../hardware/DE0-Nano-pre-built/de0_nano_nios2_system.sopcinfo
+	SOF_FILE=$(PWD)/../hardware/DE0-Nano-pre-built/de0_nano_nios2.sof
+	JDI_FILE=$(PWD)/../hardware/DE0-Nano-pre-built/de0_nano_nios2.jdi
+else ifeq(BOARD_TYPE, DE2_115)
+	CPU_NAME=nios2 
+	TIMER_NAME=timer_0
+	CORE_FILE=$(PWD)/../hardware/DE2-115-pre-built/DE2_115_Nios2System.sopcinfo
+	SOF_FILE=$(PWD)/../hardware/DE2-115-pre-built/IL2206_DE2_115_Nios2.sof
+	JDI_FILE=$(PWD)/../hardware/DE2-115-pre-built/IL2206_DE2_115_Nios2.jdi
+endif
+
+PWD = $(shell pwd)
+
+
+# component names
+DEFAULT_SECTIONS_MAPPING := sdram
+
+# compile the TwoTasks.c by default. Change by prepending the make targets with improved, handshake or sharedmemory
+# example: make handshake fresh
+TARGET=cruise_skeleton
+
+MAKEFILE_COMMANDS := --set APP_CFLAGS_OPTIMIZATION -Os
+
+# default is "fresh" which cleans and rebuilds everything
+all: fresh
+
+bsp:
+	echo "Generating nios2 bsp for $(BOARD_TYPE).."
+	rm -rf bsp
+	mkdir -p bsp
+	nios2-bsp ucosii bsp $(CORE_FILE) \
+		--cpu-name $(CPU_NAME) \
+		--default_sections_mapping $(DEFAULT_SECTIONS_MAPPING) \
+		--set hal.sys_clk_timer $(TIMER_NAME) \
+		--set hal.timestamp_timer $(TIMER_NAME)  \
+		--set hal.make.bsp_cflags_debug -g \
+		--set hal.make.bsp_cflags_optimization -Os \
+		--set hal.enable_sopc_sysid_check 1 \
+		--set ucosii.os_tmr_en 1
+
+nios2-makefile:
+	echo "Generating nios2 Makefile for $(TARGET).."
+
+	mkdir -p bin && \
+		nios2-app-generate-makefile \
+		--bsp-dir bsp \
+		--elf-name bin/$(APP_NAME)-$(TARGET).elf \
+		--src-files src/$(TARGET).c \
+		--set APP_CFLAGS_OPTIMIZATION -O0
+
+compile:
+	make
+
+configure-sof:
+	nios2-configure-sof $(SOF_FILE)
+
+download:
+	nios2-download -g bin/$(APP_NAME)-$(TARGET).elf --cpu_name $(CPU_NAME) --jdi $(JDI_FILE)
+
+run-terminal:
+	nios2-terminal
+
+
+run: configure-sof download run-terminal
+
+rebuild: nios2-makefile compile
+
+rebuild_run: rebuild download run-terminal
+
+handshake: TARGET=Handshake
+
+yoyo:
+	@echo Target is $(TARGET)
+
+improved: 
+	$(eval TARGET=TwoTasksImproved)
+
+handshake:
+	$(eval TARGET=Handshake)
+
+sharedmemory:
+	$(eval TARGET=SharedMemory)
+
+contextswitch:
+	$(eval TARGET=ContextSwitch)
+
+clean:
+ifneq (,$(wildcard ./Makefile))
+	make clean_all
+	rm Makefile
+endif
+
+	rm -rf bin
+	rm -rf gen
+	rm -rf bsp
+
+fresh: clean bsp nios2-makefile compile run
+
+.PHONY: clean compile run help bsp nios2-makefile fresh configure-sof download run-terminal rebuild_run handshake improved rebuild contextswitch
+

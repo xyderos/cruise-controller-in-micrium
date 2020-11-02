@@ -1,0 +1,89 @@
+\documentclass[12pt]{article}
+\usepackage{import}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fontspec}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+}
+
+\urlstyle{same}
+\usepackage{tikz}
+
+% pulled from https://tex.stackexchange.com/questions/99316/symbol-for-external-links
+\newcommand{\ExternalLink}{%
+\tikz[x=1.2ex, y=1.2ex, baseline=-0.05ex]{%
+    \begin{scope}[x=1ex, y=1ex]
+        \clip (-0.1,-0.1)
+            --++ (-0, 1.2)
+            --++ (0.6, 0)
+            --++ (0, -0.6)
+            --++ (0.6, 0)
+            --++ (0, -1);
+        \path[draw,
+            line width = 0.5,
+            rounded corners=0.5]
+            (0,0) rectangle (1,1);
+    \end{scope}
+    \path[draw, line width = 0.5] (0.5, 0.5)
+        -- (1, 1);
+    \path[draw, line width = 0.5] (0.6, 1)
+        -- (1, 1) -- (1, 0.6);
+    }
+}
+
+\setmonofont{Menlo}[Scale=MatchLowercase] % select a suitable monospaced font
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C
+}
+
+% macro for writing µC/OS-II, which is a pain due to the micro symbol
+\newcommand{\ucosii}{µC/OS-II}
+% 
+
+
+\title{Laboratory 2}
+\author{
+        Olafur Jonsson \\
+            \and
+        Konstantinos Xyderos \\
+}
+\date{\today}
+
+
+\begin{document}
+\maketitle
+
+\import{"2.2 - Questions/"}{section.tex}
+\import{"3.1 - Accessing a Shared Resource - IO/"}{section.tex}
+
+\end{document}
